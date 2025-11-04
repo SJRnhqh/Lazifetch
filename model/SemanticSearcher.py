@@ -182,7 +182,7 @@ class SemanticSearcher:
         return paper_list
         
     # 从本地PDF路径读取论文内容
-    async def read_arxiv_from_path(self, pdf_path: str, logger: Logger | None = None) -> Result | None:
+    async def read_arxiv_from_path(self, pdf_path: str) -> Result | None:
         """
         异步从本地PDF文件读取论文内容
         功能：从本地PDF文件读取论文内容
@@ -192,17 +192,14 @@ class SemanticSearcher:
         返回：解析后的论文内容字典，失败时返回None
         """
         if not os.path.exists(pdf_path):
-            if logger:
-                logger.error(f"The PDF file <{pdf_path}> does not exist.")
+            logger.error(f"The PDF file <{pdf_path}> does not exist.")
             return None
         try:
             article_dict = scipdf.parse_pdf_to_dict(pdf_path)
-            if logger:
-                logger.info(f"Successfully parsed the PDF file: {article_dict}")
+            logger.info(f"Successfully parsed the PDF file: {article_dict}")
             return article_dict
         except Exception as e:
-            if logger:
-                logger.error(f"Failed to read the article from the PDF file: {e}, {pdf_path}")
+            logger.error(f"Failed to read the article from the PDF file: {e}, {pdf_path}")
             return None
     
     # 提取论文标题和摘要
@@ -394,49 +391,49 @@ class SemanticSearcher:
         paper_candidates.reverse()
 
         # 根据候选论文下载PDF文件（原串行版本，已注释）
-        start_time = time.time()
-        final_results = []
+        # start_time = time.time()
+        # final_results = []
         
-        while len(final_results) < max_results and len(paper_candidates) > 0:
-            result = paper_candidates.pop()
-            article = None
-            if need_download:
-                if os.path.exists(
-                    os.path.join(
-                        self.save_dir,
-                        f"{result['title']}.pdf"
-                    )
-                ):
-                    article = await self.read_arxiv_from_path(
-                        os.path.join(self.save_dir, f"{result['title']}.pdf")
-                    )
-                else:
-                    pdf_link = result["openAccessPdf"]["url"]
-                    article = await self.read_arxiv_from_link_async(
-                        pdf_link,
-                        f"{result['title']}.pdf"
-                    )
-                if not article:
-                    continue
+        # while len(final_results) < max_results and len(paper_candidates) > 0:
+        #     result = paper_candidates.pop()
+        #     article = None
+        #     if need_download:
+        #         if os.path.exists(
+        #             os.path.join(
+        #                 self.save_dir,
+        #                 f"{result['title']}.pdf"
+        #             )
+        #         ):
+        #             article = await self.read_arxiv_from_path(
+        #                 os.path.join(self.save_dir, f"{result['title']}.pdf")
+        #             )
+        #         else:
+        #             pdf_link = result["openAccessPdf"]["url"]
+        #             article = await self.read_arxiv_from_link_async(
+        #                 pdf_link,
+        #                 f"{result['title']}.pdf"
+        #             )
+        #         if not article:
+        #             continue
             
-            title, abstract, citationCount, year = (
-                result["title"],
-                result["abstract"],
-                result["citationCount"],
-                result["year"],
-            )
-            final_results.append(Result(
-                title=title,
-                abstract=abstract,
-                article=article,
-                citations_count=citationCount,
-                year=year
-            ))
+        #     title, abstract, citationCount, year = (
+        #         result["title"],
+        #         result["abstract"],
+        #         result["citationCount"],
+        #         result["year"],
+        #     )
+        #     final_results.append(Result(
+        #         title=title,
+        #         abstract=abstract,
+        #         article=article,
+        #         citations_count=citationCount,
+        #         year=year
+        #     ))
         
-        end_time = time.time()
-        print(f"Download time: {end_time - start_time} seconds")
-        print(len(final_results))
-        return final_results
+        # end_time = time.time()
+        # print(f"Download time: {end_time - start_time} seconds")
+        # print(len(final_results))
+        # return final_results
             
         # for result in paper_candidates:
         #     article = None
@@ -484,66 +481,66 @@ class SemanticSearcher:
         # return final_results
         
         # 并发下载PDF文件
-        # start_time = time.time()
-        # final_results = []
+        start_time = time.time()
+        final_results = []
 
-        # if need_download:
-        #     semaphore = asyncio.Semaphore(20)  # 控制并发数
+        if need_download:
+            semaphore = asyncio.Semaphore(20)  # 控制并发数
 
-        #     async def download_item(result):
-        #         async with semaphore:
-        #             pdf_path = os.path.join(self.save_dir, f"{result['title']}.pdf")
-        #             if os.path.exists(pdf_path):
-        #                 article = await self.read_arxiv_from_path(pdf_path)
-        #                 return result, article
-        #             elif result.get("isOpenAccess") and result.get("openAccessPdf"):
-        #                 pdf_link = result["openAccessPdf"]["url"]
-        #                 article = await self.read_arxiv_from_link_async(pdf_link, f"{result['title']}.pdf")
-        #                 return result, article
-        #             return result, None
+            async def download_item(result):
+                async with semaphore:
+                    pdf_path = os.path.join(self.save_dir, f"{result['title']}.pdf")
+                    if os.path.exists(pdf_path):
+                        article = await self.read_arxiv_from_path(pdf_path)
+                        return result, article
+                    elif result.get("isOpenAccess") and result.get("openAccessPdf"):
+                        pdf_link = result["openAccessPdf"]["url"]
+                        article = await self.read_arxiv_from_link_async(pdf_link, f"{result['title']}.pdf")
+                        return result, article
+                    return result, None
 
-        #     # 持续尝试直到满足数量或耗尽候选
-        #     while len(final_results) < max_results and paper_candidates:
-        #         # 当前批次：取 min(剩余需要数 + 2, 剩余候选) 用于并发
-        #         remaining_needed = max_results - len(final_results)
-        #         batch_size = min(remaining_needed + 2, len(paper_candidates))
-        #         batch = [paper_candidates.pop() for _ in range(batch_size)]
+            # 持续尝试直到满足数量或耗尽候选
+            while len(final_results) < max_results and paper_candidates:
+                # 当前批次：取 min(剩余需要数 + 2, 剩余候选) 用于并发
+                remaining_needed = max_results - len(final_results)
+                batch_size = min(remaining_needed + 2, len(paper_candidates))
+                batch = [paper_candidates.pop() for _ in range(batch_size)]
                 
-        #         tasks = [download_item(r) for r in batch]
-        #         results = await asyncio.gather(*tasks, return_exceptions=True)
+                tasks = [download_item(r) for r in batch]
+                results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        #         for item in results:
-        #             if isinstance(item, Exception) or item[1] is None:
-        #                 continue
-        #             result, article = item
-        #             final_results.append(Result(
-        #                 title=result["title"],
-        #                 abstract=result["abstract"],
-        #                 article=article,
-        #                 citations_count=result["citationCount"],
-        #                 year=result["year"],
-        #             ))
-        #             # ✅ 一旦满足就提前退出内层
-        #             if len(final_results) >= max_results:
-        #                 break
+                for item in results:
+                    if isinstance(item, Exception) or item[1] is None:
+                        continue
+                    result, article = item
+                    final_results.append(Result(
+                        title=result["title"],
+                        abstract=result["abstract"],
+                        article=article,
+                        citations_count=result["citationCount"],
+                        year=result["year"],
+                    ))
+                    # ✅ 一旦满足就提前退出内层
+                    if len(final_results) >= max_results:
+                        break
 
-        #         # 外层 while 条件控制继续或退出
-        # else:
-        #     # 不需要下载：直接取前 N 个
-        #     while len(final_results) < max_results and paper_candidates:
-        #         result = paper_candidates.pop()
-        #         final_results.append(Result(
-        #             title=result["title"],
-        #             abstract=result["abstract"],
-        #             article=None,
-        #             citations_count=result["citationCount"],
-        #             year=result["year"],
-        #         ))
+                # 外层 while 条件控制继续或退出
+        else:
+            # 不需要下载：直接取前 N 个
+            while len(final_results) < max_results and paper_candidates:
+                result = paper_candidates.pop()
+                final_results.append(Result(
+                    title=result["title"],
+                    abstract=result["abstract"],
+                    article=None,
+                    citations_count=result["citationCount"],
+                    year=result["year"],
+                ))
         
-        # end_time = time.time()
-        # print(f"Download time: {end_time - start_time} seconds")
-        # print(len(final_results))
-        # return final_results
+        end_time = time.time()
+        print(f"Download time: {end_time - start_time} seconds")
+        print(len(final_results))
+        return final_results
     
     # 异步搜索相关论文（引用和参考文献）
     async def search_related_paper_async(
@@ -747,7 +744,7 @@ class SemanticSearcher:
             article_dict = self.read_arxiv_from_path(file_path)
             # article_dict = await self.read_arxiv_from_path(file_path)
             return article_dict
-        except Exception as e:  # 如果解析失败 
+        except Exception as e:  # 如果解析失败
             logger.error(
                 f"Failed to read the article from the PDF file: {e}, {filename}"
             )

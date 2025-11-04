@@ -10,3 +10,5 @@ __pycache__/
 # papers
 papers/
 
+# grobid
+grobid/
