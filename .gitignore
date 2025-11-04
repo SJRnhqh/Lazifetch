@@ -12,3 +12,8 @@ papers/
 
 # grobid
 grobid/
+
+# build
+build/
+dist/
+*.egg-info/

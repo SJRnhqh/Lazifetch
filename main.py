@@ -2,9 +2,9 @@
 # 导入外部库
 from dotenv import load_dotenv
 import logging
-import os
 import asyncio
 import time
+import os
 
 
 # 导入内部库
@@ -28,17 +28,19 @@ def main():
     if not api_key:
         raise ValueError("SEMANTIC_SEARCH_API_KEY is not set")
     
+    
     logger = logging.getLogger(__name__)
+    
     
     searcher = SemanticSearcher(
         save_dir="papers/",
         ban_list=[]
     )
 
-
-    query = "Machine Learning"
+    topic = "machine learning for deep potential energy surface"
+    query = "neural network force field quantum chemistry"
     
-    logger.info(f"开始搜索论文: {query}")
+    logger.info(f"开始搜索论文: {topic}")
     
     # 记录开始时间
     start_time = time.time()
@@ -51,18 +53,19 @@ def main():
             results =  await searcher.search_async(
                 query=query,
                 max_results=5,
-                need_download=True,
+                rerank_query=f"{topic}",
+                #llm=deepseek_llm,
                 api_key=api_key
             )
             
-            # if results:
-            #     logger.info(f"成功获取 {len(results)} 篇论文")
-            #     for i, paper in enumerate(results):
-            #         logger.info(f"  论文 {i+1}: {paper.title[:50]}{'...' if len(paper.title) > 50 else ''}")
-            # else:
-            #     logger.warning("未找到或下载失败")
-            # download_duration = time.time() - start_time
-            # logger.info(f"搜索和下载总耗时: {download_duration:.2f} 秒")
+            if results:
+                logger.info(f"成功获取 {len(results)} 篇论文")
+                for i, paper in enumerate(results):
+                    logger.info(f"  论文 {i+1}: {paper.title[:50]}{'...' if len(paper.title) > 50 else ''}")
+            else:
+                logger.warning("未找到或下载失败")
+            download_duration = time.time() - start_time
+            logger.info(f"搜索和下载总耗时: {download_duration:.2f} 秒")
         except Exception as e:
             logger.error(f"下载过程中出现错误: {e}")
     

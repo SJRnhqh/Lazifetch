@@ -1,3 +1,10 @@
 # src/Lazifetch/__init__.py
 
-__version__ = "0.0.0"
+
+from model.SemanticSearcher import SemanticSearcher
+
+
+__all__ = ["SemanticSearcher"]
+
+
+__version__ = "0.0.1"
