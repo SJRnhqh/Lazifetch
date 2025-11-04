@@ -485,7 +485,7 @@ class SemanticSearcher:
         final_results = []
 
         if need_download:
-            semaphore = asyncio.Semaphore(20)  # 控制并发数
+            semaphore = asyncio.Semaphore(10)  # 控制并发数
 
             async def download_item(result):
                 async with semaphore:
@@ -501,9 +501,9 @@ class SemanticSearcher:
 
             # 持续尝试直到满足数量或耗尽候选
             while len(final_results) < max_results and paper_candidates:
-                # 当前批次：取 min(剩余需要数 + 2, 剩余候选) 用于并发
+                # 当前批次：精确取剩余需要数，不额外添加冗余
                 remaining_needed = max_results - len(final_results)
-                batch_size = min(remaining_needed + 2, len(paper_candidates))
+                batch_size = min(remaining_needed, len(paper_candidates))
                 batch = [paper_candidates.pop() for _ in range(batch_size)]
                 
                 tasks = [download_item(r) for r in batch]
