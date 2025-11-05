@@ -17,3 +17,6 @@ grobid/
 build/
 dist/
 *.egg-info/
+
+# tmp
+tmp/
