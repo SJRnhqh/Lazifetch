@@ -16,7 +16,7 @@ A Python package for searching and downloading academic literature based on topi
 **Step 1**: Install Lazifetch
 
 ```shell
-uv add Lazifetch
+uv add lazifetch
 ```
 
 **Step 2**: Install scipdf
