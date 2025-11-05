@@ -4,6 +4,7 @@ version = "0.0.4"
 description = "A Python package for searching and downloading academic literature based on topics."
 readme = "README.md"
 requires-python = ">=3.12"
+license = {text = "MIT"}
 dependencies = [
     "aiohttp>=3.13.1",
     "numpy>=2.3.4",
