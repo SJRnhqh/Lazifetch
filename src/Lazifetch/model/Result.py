@@ -1,4 +1,4 @@
-# src/Lazifetch/model/Result.py
+# src/lazifetch/model/Result.py
 
 
 class Result:

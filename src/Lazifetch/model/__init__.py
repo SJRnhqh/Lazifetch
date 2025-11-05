@@ -1,4 +1,4 @@
-# src/Lazifetch/model/__init__.py
+# src/lazifetch/model/__init__.py
 
 
 from .SemanticSearcher import SemanticSearcher

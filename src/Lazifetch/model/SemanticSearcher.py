@@ -1,4 +1,4 @@
-# src/Lazifetch/model/SemanticSearcher.py
+# src/lazifetch/model/SemanticSearcher.py
 # 导入外部库
 from typing import List, Any
 from logging import Logger

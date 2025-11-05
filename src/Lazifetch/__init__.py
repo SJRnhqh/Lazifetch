@@ -1,10 +1,10 @@
-# src/Lazifetch/__init__.py
+# src/lazifetch/__init__.py
 
 
-from model.SemanticSearcher import SemanticSearcher
+from .model.SemanticSearcher import SemanticSearcher
 
 
 __all__ = ["SemanticSearcher"]
 
 
-__version__ = "0.0.1"
+__version__ = "0.0.4"
