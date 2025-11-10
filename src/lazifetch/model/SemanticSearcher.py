@@ -176,7 +176,7 @@ class SemanticSearcher:
             )
             return None
 
-    def read_paper_title_abstract(self, article: dict) -> tuple[str, str]:
+    def read_paper_title_abstract(self, article):
         title = article["title"]
         abstract = article["abstract"]
         paper_content = f"""
@@ -185,7 +185,7 @@ class SemanticSearcher:
         """
         return paper_content
 
-    def read_paper_title_abstract_introduction(self, article: dict) -> tuple[str, str]:
+    def read_paper_title_abstract_introduction(self, article):
         title = article["title"]
         abstract = article["abstract"]
         introduction = article["sections"][0]["text"]
@@ -196,13 +196,13 @@ class SemanticSearcher:
         """
         return paper_content
 
-    def read_paper_content(self, article: dict) -> str:
+    def read_paper_content(self, article):
         paper_content = self.read_paper_title_abstract(article)
         for section in article["sections"]:
             paper_content += f"section: {section['heading']}\n content: {section['text']}\n ref_ids: {section['publication_ref']}\n"
         return paper_content
 
-    def read_paper_content_with_ref(self, article: dict) -> str:
+    def read_paper_content_with_ref(self, article):
         paper_content = self.read_paper_content(article)
         paper_content += "<References>\n"
         for refer in article["references"]:
@@ -259,10 +259,10 @@ class SemanticSearcher:
             api_key=api_key,
         )
         end_time = time.time()
-        print(f"Search time: {end_time - start_time} seconds")
-        print(len(results["data"]))
+        logger.info(f"Search time: {end_time - start_time} seconds")
 
         if not results or "data" not in results:
+            logger.warning(f"Search failed or returned empty data for query: {query}")
             return []
 
         new_results = []
@@ -300,10 +300,10 @@ class SemanticSearcher:
                 llm,
             )
         else:
-            logging.error(f"没有设置论文排序，因此按照默认顺序。")
+            logging.error(f"No reranking query or LLM set, using default order.")
         end_time = time.time()
-        print(f"Rerank time: {end_time - start_time} seconds")
-        print(len(paper_candidates))
+        logger.info(f"Rerank time: {end_time - start_time} seconds")
+        logger.info(f"Number of reranked papers: {len(paper_candidates)}")
         paper_candidates.reverse()
 
         start_time = time.time()
@@ -364,8 +364,8 @@ class SemanticSearcher:
                 )
 
         end_time = time.time()
-        print(f"Download time: {end_time - start_time} seconds")
-        print(len(final_results))
+        logger.info(f"Download time: {end_time - start_time} seconds")
+        logger.info(f"Number of downloaded papers: {len(final_results)}")
         return final_results
 
     async def search_related_paper_async(
@@ -376,13 +376,11 @@ class SemanticSearcher:
         rerank_query: str | None = None,
         llm: Any | None = None,
         paper_list: List[Result] = [],
-        logger: Logger | None = None,
         api_key: str | None = None,
     ) -> List[Result] | None:
-        if logger:
-            logger.info(
-                f"Searching for related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
-            )
+        logger.info(
+            f"Searching for related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
+        )
 
         fields = [
             "title",
@@ -404,17 +402,15 @@ class SemanticSearcher:
             title,
             limit=3,
             fields=fields,
-            logger=logger,
             api_key=api_key,
         )
 
         related_papers = []
         related_papers_title = []
         if not results or "data" not in results:
-            if logger:
-                logger.warning(
-                    f"Failed to find related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
-                )
+            logger.warning(
+                f"Failed to find related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
+            )
             return None
         for result in results["data"]:
             if not result:
@@ -513,8 +509,7 @@ class SemanticSearcher:
                 for paper in related_papers
             ]
             related_papers = sorted(related_papers, key=lambda x: x[3], reverse=True)
-        if logger:
-            logger.info(f"Found {len(related_papers)} related papers")
+        logger.info(f"Found {len(related_papers)} related papers")
         for paper in related_papers:
             url = paper[2]
             article = await self.read_arxiv_from_link_async(url, f"{paper[0]}.pdf")
@@ -527,11 +522,9 @@ class SemanticSearcher:
                 citations_count=paper[3],
                 year=paper[4],
             )
-            if logger:
-                logger.info(f"Successfully found related papers of paper <{title}>")
+            logger.info(f"Successfully found related papers of paper <{title}>")
             return result
-        if logger:
-            logger.warning(
+        logger.warning(
                 f"Failed to find related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
             )
         return None
@@ -549,7 +542,7 @@ class SemanticSearcher:
             logger.error(f"Failed to download the PDF file: {filename}")
             return None
         try:
-            article_dict = self.read_arxiv_from_path(file_path)
+            article_dict = await self.read_arxiv_from_path(file_path)
             return article_dict
         except Exception as e:
             logger.error(

@@ -551,7 +551,6 @@ class SemanticSearcher:
         rerank_query: str | None = None,
         llm: Any | None = None,
         paper_list: List[Result] = [],
-        logger: Logger | None = None,
         api_key: str | None = None,
     ) -> List[Result] | None:
         """
@@ -564,14 +563,12 @@ class SemanticSearcher:
             rerank_query: 用于重排序的查询词
             llm: 语言模型对象，用于重排序
             paper_list: 已读论文列表，用于避免重复
-            logger: 日志记录器
             api_key: Semantic Scholar API密钥
         返回：相关论文的Result对象，如果失败返回None
         """
-        if logger:
-            logger.info(
-                f"Searching for related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
-            )
+        logger.info(
+            f"Searching for related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
+        )
         
         fields = [
             "title",
@@ -590,16 +587,15 @@ class SemanticSearcher:
             "references.year",
         ]
         results = await self.search_papers_async(
-            title, limit=3, fields=fields, logger=logger, api_key=api_key,
+            title, limit=3, fields=fields, api_key=api_key,
         )
         
         related_papers = []
         related_papers_title = []
         if not results or "data" not in results:
-            if logger:
-                logger.warning(
-                    f"Failed to find related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
-                )
+            logger.warning(
+                f"Failed to find related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
+            )
             return None
         for result in results["data"]:
             if not result:
@@ -710,13 +706,11 @@ class SemanticSearcher:
                 citations_count=paper[3],
                 year=paper[4]
             )
-            if logger:
-                logger.info(f"Successfully found related papers of paper <{title}>")
+            logger.info(f"Successfully found related papers of paper <{title}>")
             return result
-        if logger:
-            logger.warning(
-                f"Failed to find related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
-            )
+        logger.warning(
+            f"Failed to find related papers of paper <{title}>; Citation:{need_citation}; Reference:{need_reference}"
+        )
         return None
     
     # 异步从PDF链接读取论文内容
@@ -741,8 +735,8 @@ class SemanticSearcher:
             logger.error(f"Failed to download the PDF file: {filename}")
             return None
         try:  # 尝试解析下载的PDF文件
-            article_dict = self.read_arxiv_from_path(file_path)
-            # article_dict = await self.read_arxiv_from_path(file_path)
+            # article_dict = self.read_arxiv_from_path(file_path)
+            article_dict = await self.read_arxiv_from_path(file_path)
             return article_dict
         except Exception as e:  # 如果解析失败
             logger.error(

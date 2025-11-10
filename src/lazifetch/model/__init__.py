@@ -3,5 +3,6 @@
 
 from .SemanticSearcher import SemanticSearcher
 from .OpenAILLM import OpenAILLM
+from .Result import Result
 
-__all__ = ["SemanticSearcher", "OpenAILLM"]
+__all__ = ["SemanticSearcher", "OpenAILLM", "Result"]

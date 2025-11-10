@@ -54,7 +54,7 @@ def main():
             logger.info("调用 search_async 方法...")
             results =  await searcher.search_async(
                 query=query,
-                max_results=1,
+                max_results=3,
                 rerank_query=f"{topic}",
                 llm=main_llm,
                 api_key=api_key
