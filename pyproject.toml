@@ -1,6 +1,6 @@
 [project]
 name = "lazifetch"
-version = "0.0.4"
+version = "0.0.5"
 description = "A Python package for searching and downloading academic literature based on topics."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -13,6 +13,7 @@ dependencies = [
     "pip>=25.3",
     "python-dotenv>=1.2.1",
     "requests>=2.32.5",
+    "tenacity>=9.1.2",
 ]
 
 [dependency-groups]

@@ -9,6 +9,7 @@ import os
 
 # 导入内部库
 from model.SemanticSearcher import SemanticSearcher
+from utils.llm import get_llms
 
 
 def setup_logging():
@@ -31,6 +32,7 @@ def main():
     
     logger = logging.getLogger(__name__)
     
+    main_llm, cheap_llm = get_llms()
     
     searcher = SemanticSearcher(
         save_dir="papers/",
@@ -52,9 +54,9 @@ def main():
             logger.info("调用 search_async 方法...")
             results =  await searcher.search_async(
                 query=query,
-                max_results=5,
+                max_results=1,
                 rerank_query=f"{topic}",
-                #llm=deepseek_llm,
+                llm=main_llm,
                 api_key=api_key
             )
             

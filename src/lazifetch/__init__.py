@@ -7,4 +7,4 @@ from .model.SemanticSearcher import SemanticSearcher
 __all__ = ["SemanticSearcher"]
 
 
-__version__ = "0.0.4"
+__version__ = "0.0.5"

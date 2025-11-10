@@ -156,7 +156,7 @@ class SemanticSearcher:
         )
 
         paper_list = sorted(
-            zip[tuple[Any, Any]](paper_list, scores), key=lambda x: x[1], reverse=True
+            zip(paper_list, scores), key=lambda x: x[1], reverse=True
         )
 
         paper_list = [paper[0] for paper in paper_list]
